@@ -1,0 +1,75 @@
+name: fastify-clean-architecture
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: fastify-app
+    restart: unless-stopped
+    ports:
+      - '${PORT:-3000}:3000'
+    env_file:
+      - .env
+    command: npm run dev
+    environment:
+      CHOKIDAR_USEPOLLING: 'true'
+      CHOKIDAR_INTERVAL: '300'
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    networks:
+      - my-network
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/healthz']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - my-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  redis-commander:
+    image: ghcr.io/joeferner/redis-commander:latest
+    container_name: redis-commander
+    restart: unless-stopped
+    ports:
+      - '${REDIS_COMMANDER_PORT:-8081}:8081'
+    environment:
+      REDIS_HOSTS: local:redis:6379
+      HTTP_USER: ${REDIS_COMMANDER_USER:-admin}
+      HTTP_PASSWORD: ${REDIS_COMMANDER_PASSWORD:-admin}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    name: my-network
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local
