@@ -45,8 +45,8 @@ function resolveEndpoint(baseURL?: string, url?: string): string {
 
 function resolveLogModel(): ReturnType<typeof createLogModel> | undefined {
   const ctx = requestContext.get()
-  if (!ctx?.correlatorId && !ctx?.journey) return undefined
-  return createLogModel({ txid: ctx?.correlatorId, service_type: ctx?.journey })
+  if (!ctx?.correlatorId && !ctx?.channel) return undefined
+  return createLogModel({ txid: ctx?.correlatorId, channel: ctx?.channel })
 }
 
 function toMetadata(config: InternalAxiosRequestConfig): RequestMetadata {

@@ -5,7 +5,7 @@ vi.mock('node:crypto', () => ({
 }))
 
 const envMock = vi.hoisted(() => ({
-  SERVICE_TYPE: 'service',
+  LOG_CHANNEL: 'service',
 }))
 
 vi.mock('@/infra/config/env', () => ({
@@ -23,10 +23,10 @@ import type { FastifyInstance } from 'fastify'
 
 describe('onRequest plugin', () => {
   beforeEach(() => {
-    envMock.SERVICE_TYPE = 'service'
+    envMock.LOG_CHANNEL = 'service'
   })
 
-  it('sets correlator and journey headers with defaults', () => {
+  it('sets correlator and channel headers with defaults', () => {
     createLogModel.mockClear()
     const fastify = { addHook: vi.fn() }
     onRequest(fastify as unknown as FastifyInstance, {}, () => {})
@@ -37,13 +37,13 @@ describe('onRequest plugin', () => {
       {
         headers: {
           'x-correlator-id': 'corr-1',
-          'x-journey': 'journey-1',
+          'x-channel': 'channel-1',
         },
-        expected: { correlator: 'corr-1', journey: 'journey-1' },
+        expected: { correlator: 'corr-1', channel: 'channel-1' },
       },
       {
         headers: {},
-        expected: { correlator: 'uuid-1', journey: 'service' },
+        expected: { correlator: 'uuid-1', channel: 'service' },
       },
     ]
 
@@ -54,11 +54,11 @@ describe('onRequest plugin', () => {
       hook(request, reply, () => {})
 
       expect(reply.header).toHaveBeenCalledWith('x-correlator-id', expected.correlator)
-      expect(reply.header).toHaveBeenCalledWith('x-journey', expected.journey)
+      expect(reply.header).toHaveBeenCalledWith('x-channel', expected.channel)
       expect(request.logModel).toBeDefined()
     }
 
-    expect(createLogModel).toHaveBeenCalledWith({ txid: 'corr-1', service_type: 'journey-1' })
+    expect(createLogModel).toHaveBeenCalledWith({ txid: 'corr-1', channel: 'channel-1' })
   })
 
   it('skips log model for healthz, metrics, and docs endpoints', () => {

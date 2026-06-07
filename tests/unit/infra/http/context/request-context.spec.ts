@@ -8,14 +8,14 @@ describe('requestContext', () => {
   })
 
   it('sets context with enterWith and can read it', () => {
-    requestContext.set({ correlatorId: 'c1', journey: 'j1' })
-    expect(requestContext.get()).toEqual({ correlatorId: 'c1', journey: 'j1' })
+    requestContext.set({ correlatorId: 'c1', channel: 'ch1' })
+    expect(requestContext.get()).toEqual({ correlatorId: 'c1', channel: 'ch1' })
   })
 
   it('runs callback with provided context', () => {
-    const result = requestContext.run({ correlatorId: 'c2', journey: 'j2' }, () =>
+    const result = requestContext.run({ correlatorId: 'c2', channel: 'ch2' }, () =>
       requestContext.get(),
     )
-    expect(result).toEqual({ correlatorId: 'c2', journey: 'j2' })
+    expect(result).toEqual({ correlatorId: 'c2', channel: 'ch2' })
   })
 })

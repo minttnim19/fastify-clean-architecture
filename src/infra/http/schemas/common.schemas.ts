@@ -60,13 +60,8 @@ export const RequiredHeadersSchema = z.object({
   ...CorrelatorHeaderSchema.shape,
 })
 
-export const RequiredHeadersWithJourneySchema = z.object({
+export const RequiredHeadersWithChannelSchema = z.object({
   ...RequiredHeadersSchema.shape,
-  'x-journey': OptionalHeaderValueSchema.default('prebook')
-    .describe('Journey identifier. Defaults to prebook when omitted')
-    .meta({
-      example: 'prebook',
-    }),
 })
 
 export const CorrelatorWithFilenameHeaderSchema = z.object({

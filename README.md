@@ -96,6 +96,7 @@ Main variables:
 | `PORT`, `HOST` | HTTP bind settings. |
 | `NODE_ENV`, `APP_ENV` | Runtime environment labels. |
 | `LOG_LEVEL`, `LOG_PATH`, `LOG_TO_FILE` | Logger behavior. |
+| `LOG_CHANNEL`, `LOG_PRODUCT`, `SERVICE_TYPE` | Structured log fields. `LOG_CHANNEL` is also the fallback for the `x-channel` request header. |
 | `REDIS_URL`, `REDIS_*` | Redis standalone or cluster configuration. |
 | `CORS_ORIGIN` | CORS origin setting. |
 | `RATE_LIMIT_MAX` | Fastify rate limit per minute. |

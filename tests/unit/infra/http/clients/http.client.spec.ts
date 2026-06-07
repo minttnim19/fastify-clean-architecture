@@ -146,7 +146,7 @@ describe('http.client', () => {
   it('sets request metadata and allows absolute url', async () => {
     const { instance, getOnRequest } = makeAxiosInstance()
     axiosCreate.mockImplementation(() => instance)
-    requestContextGet.mockReturnValue({ correlatorId: 'c1', journey: 'j1' })
+    requestContextGet.mockReturnValue({ correlatorId: 'c1', channel: 'ch1' })
 
     await import('@/infra/http/clients/http.client.js')
 
@@ -162,12 +162,13 @@ describe('http.client', () => {
         request: { a: 1 },
       }),
     )
+    expect(createLogModel).toHaveBeenCalledWith({ txid: 'c1', channel: 'ch1' })
   })
 
   it('resolves endpoint from baseURL and relative url', async () => {
     const { instance, getOnRequest } = makeAxiosInstance()
     axiosCreate.mockImplementation(() => instance)
-    requestContextGet.mockReturnValue({ correlatorId: 'c1', journey: 'j1' })
+    requestContextGet.mockReturnValue({ correlatorId: 'c1', channel: 'ch1' })
 
     await import('@/infra/http/clients/http.client.js')
 
@@ -181,7 +182,7 @@ describe('http.client', () => {
   it('resolves endpoint from baseURL when url is missing', async () => {
     const { instance, getOnRequest } = makeAxiosInstance()
     axiosCreate.mockImplementation(() => instance)
-    requestContextGet.mockReturnValue({ correlatorId: 'c1', journey: 'j1' })
+    requestContextGet.mockReturnValue({ correlatorId: 'c1', channel: 'ch1' })
 
     await import('@/infra/http/clients/http.client.js')
 
@@ -195,7 +196,7 @@ describe('http.client', () => {
   it('resolves empty endpoint when url and baseURL are missing', async () => {
     const { instance, getOnRequest } = makeAxiosInstance()
     axiosCreate.mockImplementation(() => instance)
-    requestContextGet.mockReturnValue({ correlatorId: 'c1', journey: 'j1' })
+    requestContextGet.mockReturnValue({ correlatorId: 'c1', channel: 'ch1' })
 
     await import('@/infra/http/clients/http.client.js')
 
@@ -221,7 +222,7 @@ describe('http.client', () => {
   it('passes through successful responses', async () => {
     const { instance, getOnResponse } = makeAxiosInstance()
     axiosCreate.mockImplementation(() => instance)
-    requestContextGet.mockReturnValue({ correlatorId: 'c1', journey: 'j1' })
+    requestContextGet.mockReturnValue({ correlatorId: 'c1', channel: 'ch1' })
 
     await import('@/infra/http/clients/http.client.js')
 

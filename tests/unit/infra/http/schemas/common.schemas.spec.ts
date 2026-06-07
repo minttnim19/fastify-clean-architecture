@@ -7,8 +7,8 @@ import {
   CorrelatorHeaderSchema,
   CorrelatorWithFilenameHeaderSchema,
   OptionalCorrelatorHeaderSchema,
+  RequiredHeadersWithChannelSchema,
   RequiredHeadersSchema,
-  RequiredHeadersWithJourneySchema,
   UserEmailHeaderSchema,
   createApiEmptySuccessResponseSchema,
   createApiErrorResponseSchema,
@@ -18,7 +18,7 @@ import {
 } from '@/infra/http/schemas/common.schemas'
 
 describe('common schemas', () => {
-  it('normalizes header values and applies optional journey default', () => {
+  it('normalizes header values and channel headers', () => {
     expect(ChannelHeaderSchema.parse({ 'x-channel': ['WW', 'TUC'] })).toEqual({
       'x-channel': 'WW',
     })
@@ -44,25 +44,13 @@ describe('common schemas', () => {
       'x-correlator-id': 'correlator-1',
     })
     expect(
-      RequiredHeadersWithJourneySchema.parse({
+      RequiredHeadersWithChannelSchema.parse({
         'x-channel': 'WW',
         'x-correlator-id': 'correlator-1',
       }),
     ).toEqual({
       'x-channel': 'WW',
       'x-correlator-id': 'correlator-1',
-      'x-journey': 'prebook',
-    })
-    expect(
-      RequiredHeadersWithJourneySchema.parse({
-        'x-channel': 'WW',
-        'x-correlator-id': 'correlator-1',
-        'x-journey': ['preorder', 'prebook'],
-      }),
-    ).toEqual({
-      'x-channel': 'WW',
-      'x-correlator-id': 'correlator-1',
-      'x-journey': 'preorder',
     })
     expect(
       CorrelatorWithFilenameHeaderSchema.parse({

@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 
 export type RequestContext = {
   correlatorId?: string
-  journey?: string
+  channel?: string
 }
 
 const als = new AsyncLocalStorage<RequestContext>()

@@ -58,12 +58,36 @@ describe('createLogModel', () => {
     vi.useRealTimers()
   })
 
+  it('uses epoch seconds for Splunk time and keeps ISO timestamp fields', async () => {
+    mockEnv()
+
+    await import('@/infra/logger/col-logger.js')
+
+    const baseConfig = pinoMock.pinoFn.mock.calls[0][0]
+    const timestampFragment = baseConfig.timestamp?.()
+    const timestampFields = JSON.parse(`{${timestampFragment?.slice(1)}}`) as Record<
+      string,
+      unknown
+    >
+
+    expect(timestampFields).toEqual({
+      time: 1704067205,
+      '@timestamp': '2024-01-01T00:00:05.000Z',
+      timestamp: '2024-01-01T00:00:05.000Z',
+    })
+  })
+
   it('logIn writes order and step logs with computed fields', async () => {
     mockEnv({ SERVICE_TYPE: 'svc' })
     const { createLogModel, LogCategory } = await import('@/infra/logger/col-logger.js')
 
     const startedAt = new Date('2024-01-01T00:00:00.000Z').getTime()
-    const model = createLogModel({ txid: 'tx1', service_type: 'svc', started_at: startedAt })
+    const model = createLogModel({
+      txid: 'tx1',
+      channel: 'web',
+      service_type: 'svc',
+      started_at: startedAt,
+    })
 
     model.logIn(
       'Create Order API',
@@ -88,7 +112,8 @@ describe('createLogModel', () => {
       txid: 'tx1',
       step_txid: 'tx1',
       log_cat: 'order',
-      service_type: 'product_svc',
+      channel: 'web',
+      service_type: 'svc',
       start_date: '2024-01-01T00:00:00.000Z',
       end_date: '2024-01-01T00:00:05.000Z',
       result_indicator: 'INPROGRESS',
@@ -109,7 +134,8 @@ describe('createLogModel', () => {
     expect(stepPayload).toMatchObject({
       txid: 'tx1',
       log_cat: 'step',
-      service_type: 'product_svc',
+      channel: 'web',
+      service_type: 'svc',
       start_date: '2024-01-01T00:00:00.000Z',
       end_date: '2024-01-01T00:00:05.000Z',
       result_indicator: 'SUCCESS',
