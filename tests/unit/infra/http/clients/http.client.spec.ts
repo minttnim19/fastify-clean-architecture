@@ -348,9 +348,11 @@ describe('http.client', () => {
     if (!onError) throw new Error('Missing response error interceptor')
 
     await expect(onError({ message: 'bad' })).rejects.toThrow('bad')
+    await expect(onError({ message: 404 })).rejects.toThrow('404')
     await expect(onError(123)).rejects.toThrow('123')
 
     expect(loggerWarn).toHaveBeenCalledWith({ error: { message: 'bad' } }, 'Unknown HTTP error')
+    expect(loggerWarn).toHaveBeenCalledWith({ error: { message: 404 } }, 'Unknown HTTP error')
     expect(loggerWarn).toHaveBeenCalledWith({ error: 123 }, 'Unknown HTTP error')
   })
 

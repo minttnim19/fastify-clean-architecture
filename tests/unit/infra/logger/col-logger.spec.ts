@@ -120,7 +120,6 @@ describe('createLogModel', () => {
       result_code: '201',
       result_desc: 'success',
       elapsed_time: 5000,
-      step_name: 'tx1',
       endpoint: '/orders',
       request: JSON.stringify({ a: 1 }),
       response: JSON.stringify({ ok: true }),
@@ -128,6 +127,7 @@ describe('createLogModel', () => {
       ref_id: 'ref1',
       remark: 'note',
     })
+    expect(orderPayload).not.toHaveProperty('step_name')
 
     const [stepPayload, stepMsg] = pinoMock.logger.info.mock.calls[1]
     expect(stepMsg).toBe('Create Order API')
@@ -198,6 +198,54 @@ describe('createLogModel', () => {
     const [orderPayload] = pinoMock.logger.info.mock.calls[0]
     expect(orderPayload.request).toBe('raw')
     expect(orderPayload.response).toBe('resp')
+  })
+
+  it('uses provided result_desc for order and step logs', async () => {
+    mockEnv({ SERVICE_TYPE: 'svc' })
+    const { createLogModel } = await import('@/infra/logger/col-logger.js')
+
+    const model = createLogModel({ txid: 'tx-desc', service_type: 'svc' })
+
+    model.logIn('Override In', {
+      result_code: '400',
+      result_desc: 'custom in',
+    })
+    expect(pinoMock.logger.info.mock.calls[0][0]).toMatchObject({
+      result_code: '400',
+      result_desc: 'custom in',
+    })
+    expect(pinoMock.logger.info.mock.calls[1][0]).toMatchObject({
+      result_code: '400',
+      result_desc: 'custom in',
+    })
+    pinoMock.logger.info.mockClear()
+
+    model.logOut('Override Out', {
+      result_code: '0',
+      result_desc: 'custom out',
+    })
+    expect(pinoMock.logger.info.mock.calls[0][0]).toMatchObject({
+      result_code: '0',
+      result_desc: 'custom out',
+    })
+    expect(pinoMock.logger.info.mock.calls[1][0]).toMatchObject({
+      result_code: '0',
+      result_desc: 'custom out',
+    })
+
+    model.logError('Override Error', {
+      result_code: '500',
+      result_desc: 'custom error',
+      error: { message: 'boom', status: 503 },
+    })
+    expect(pinoMock.logger.error.mock.calls[0][0]).toMatchObject({
+      result_code: '503',
+      result_desc: 'custom error',
+    })
+    expect(pinoMock.logger.error.mock.calls[1][0]).toMatchObject({
+      result_code: '503',
+      result_desc: 'custom error',
+    })
   })
 
   it('logError uses axios error data and logs at error level', async () => {

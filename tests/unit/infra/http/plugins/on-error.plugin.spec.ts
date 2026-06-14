@@ -4,10 +4,14 @@ import { onError } from '@/infra/http/plugins/on-error.plugin'
 
 import type { FastifyInstance } from 'fastify'
 
-type RequestLike = { logModel?: { logStep: (...args: unknown[]) => void } }
+type RequestLike = {
+  hasError?: boolean
+  responseError?: Error
+  logModel?: { logStep: (...args: unknown[]) => void }
+}
 
 describe('onError plugin', () => {
-  it('logs error details when logModel exists', () => {
+  it('stores error details without writing a step log', () => {
     const addHook = vi.fn()
     const fastify = {
       addHook,
@@ -20,12 +24,12 @@ describe('onError plugin', () => {
     const request: RequestLike = {
       logModel: { logStep },
     }
+    const error = new Error('boom')
 
-    hook(request, {}, new Error('boom'), () => {})
+    hook(request, {}, error, () => {})
 
-    expect(logStep).toHaveBeenCalledOnce()
-    const [message, payload] = logStep.mock.calls[0]
-    expect(message).toBe('Request error')
-    expect(payload.activity_name).toBe('request-error')
+    expect(request.hasError).toBe(true)
+    expect(request.responseError).toBe(error)
+    expect(logStep).not.toHaveBeenCalled()
   })
 })

@@ -6,6 +6,7 @@ import { create as createAxiosInstance, isAxiosError } from 'axios'
 import { env } from '@/infra/config/env'
 import { requestContext } from '@/infra/http/context/request-context'
 import { createLogModel, logger } from '@/infra/logger/col-logger'
+import { getStringField, isRecord } from '@/shared/utils/object'
 
 import type {
   AxiosInstance,
@@ -31,8 +32,8 @@ export type HttpClientOptions = {
 
 function toError(error: unknown): Error {
   if (error instanceof Error) return error
-  if (typeof error === 'object' && error !== null && 'message' in error) {
-    return new Error(String((error as { message?: unknown }).message))
+  if (isRecord(error) && 'message' in error) {
+    return new Error(getStringField(error, 'message') ?? String(error['message']))
   }
   return new Error(String(error))
 }

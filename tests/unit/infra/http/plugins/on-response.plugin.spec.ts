@@ -13,14 +13,18 @@ type RequestLike = {
   logModel?: { logStep: (...args: unknown[]) => void }
 }
 
+function setupHook(done: () => void = () => {}) {
+  const addHook = vi.fn()
+  const fastify = { addHook } as unknown as FastifyInstance
+
+  onResponse(fastify, {}, done)
+
+  return addHook.mock.calls[0][1]
+}
+
 describe('onResponse plugin', () => {
   it('logs response details with and without statusCode', () => {
-    const addHook = vi.fn()
-    const fastify = { addHook } as unknown as FastifyInstance
-
-    onResponse(fastify, {}, () => {})
-
-    const hook = addHook.mock.calls[0][1]
+    const hook = setupHook()
     const logStep = vi.fn()
 
     const cases = [
@@ -54,13 +58,8 @@ describe('onResponse plugin', () => {
   })
 
   it('logs error response details when request has error', () => {
-    const addHook = vi.fn()
-    const fastify = { addHook } as unknown as FastifyInstance
     const done = vi.fn()
-
-    onResponse(fastify, {}, done)
-
-    const hook = addHook.mock.calls[0][1]
+    const hook = setupHook(done)
     const hookDone = vi.fn()
     const logStep = vi.fn()
     const cases = [
@@ -93,13 +92,101 @@ describe('onResponse plugin', () => {
     expect(hookDone).toHaveBeenCalledTimes(cases.length)
   })
 
+  it('uses ApiResponse error message as error result description', () => {
+    const hook = setupHook()
+    const logStep = vi.fn()
+    const request: RequestLike = {
+      hasError: true,
+      url: '/products',
+      method: 'POST',
+      responseBody: {
+        success: false,
+        error: {
+          code: 'PRODUCT_NOT_FOUND',
+          message: 'Product was not found',
+        },
+      },
+      logModel: { logStep },
+    }
+
+    hook(request, { statusCode: 404 }, () => {})
+
+    expect(logStep).toHaveBeenCalledWith('Request completed with error', {
+      activity_name: 'request-error',
+      endpoint: '/products',
+      method: 'POST',
+      step_request: undefined,
+      step_response: {
+        success: false,
+        error: {
+          code: 'PRODUCT_NOT_FOUND',
+          message: 'Product was not found',
+        },
+      },
+      result_code: '404',
+      result_desc: 'Product was not found',
+    })
+  })
+
+  it('uses JSON string ApiResponse error message as error result description', () => {
+    const hook = setupHook()
+    const logStep = vi.fn()
+    const request: RequestLike = {
+      hasError: true,
+      url: '/products',
+      method: 'POST',
+      responseBody: '{"success":false,"error":{"message":"failed"}}',
+      logModel: { logStep },
+    }
+
+    hook(request, { statusCode: 500 }, () => {})
+
+    const [, payload] = logStep.mock.calls[0] as [string, Record<string, unknown>]
+
+    expect(payload).toMatchObject({
+      result_desc: 'failed',
+      step_response: '{"success":false,"error":{"message":"failed"}}',
+    })
+  })
+
+  it('does not use successful ApiResponse as error result description', () => {
+    const hook = setupHook()
+    const logStep = vi.fn()
+    const request: RequestLike = {
+      hasError: true,
+      url: '/products',
+      method: 'POST',
+      responseBody: { success: true },
+      logModel: { logStep },
+    }
+
+    hook(request, { statusCode: 500 }, () => {})
+
+    const [, payload] = logStep.mock.calls[0] as [string, Record<string, unknown>]
+
+    expect(payload).not.toHaveProperty('result_desc')
+  })
+
+  it('does not use invalid string response body as error result description', () => {
+    const hook = setupHook()
+    const logStep = vi.fn()
+    const request: RequestLike = {
+      hasError: true,
+      url: '/products',
+      method: 'POST',
+      responseBody: 'failed',
+      logModel: { logStep },
+    }
+
+    hook(request, { statusCode: 500 }, () => {})
+
+    const [, payload] = logStep.mock.calls[0] as [string, Record<string, unknown>]
+
+    expect(payload).not.toHaveProperty('result_desc')
+  })
+
   it('finishes hook when log model is missing', () => {
-    const addHook = vi.fn()
-    const fastify = { addHook } as unknown as FastifyInstance
-
-    onResponse(fastify, {}, () => {})
-
-    const hook = addHook.mock.calls[0][1]
+    const hook = setupHook()
     const hookDone = vi.fn()
 
     hook({ url: '/health', method: 'GET' }, { statusCode: 204 }, hookDone)

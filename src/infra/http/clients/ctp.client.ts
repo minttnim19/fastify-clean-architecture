@@ -2,6 +2,7 @@ import { createApiBuilderFromCtpClient } from '@commercetools/platform-sdk'
 import { ClientBuilder } from '@commercetools/sdk-client-v2'
 
 import { env } from '@/infra/config/env'
+import { getNumberField, isRecord } from '@/shared/utils/object'
 
 import type { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk'
 
@@ -50,12 +51,7 @@ export class CommerceToolsClient {
   }
 
   static isCTHttpError(error: unknown): error is CTHttpError {
-    return (
-      typeof error === 'object' &&
-      error !== null &&
-      'statusCode' in error &&
-      typeof (error as CTHttpError).statusCode === 'number'
-    )
+    return isRecord(error) && getNumberField(error, 'statusCode') !== undefined
   }
 
   static isNotFound(error: unknown): boolean {

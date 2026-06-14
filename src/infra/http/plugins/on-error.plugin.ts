@@ -9,11 +9,6 @@ function onErrorPlugin(fastify: FastifyInstance, _opts: object, done: () => void
       request.hasError = true
       request.responseError = error
 
-      request.logModel?.logStep('Request error', {
-        activity_name: 'request-error',
-        error,
-      })
-
       hookDone()
     },
   )
