@@ -52,6 +52,10 @@ When changing the service base path, check all path-aware code instead of only r
 - Prefer narrow, behavior-focused changes.
 - Do not refactor unrelated files.
 - Follow existing naming, import aliases, formatting, and test style.
+- Before creating a reusable-looking helper function, check `src/shared` first.
+- If an equivalent shared helper already exists, use it instead of creating a duplicate.
+- If no equivalent helper exists, decide whether the helper is truly generic enough for `src/shared` or should stay local to the feature/module.
+- Put only low-level reusable utilities and shared types in `src/shared`; keep domain policy, application flow, and infrastructure behavior in their owning layers.
 - Keep Zod request and response schemas in `src/infra/http/schemas`.
 - Register new routes in `src/infra/http/app.ts`.
 - Add or update focused unit tests for changed behavior.
