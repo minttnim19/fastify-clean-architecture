@@ -90,6 +90,16 @@ When changing the service base path, check all path-aware code instead of only r
   - status
 - If a task already has a plan file, update the existing file instead of creating a duplicate.
 
+## SonarQube
+
+- Write code with SonarQube quality expectations in mind.
+- Keep functions focused, readable, and reasonably small; reduce cognitive complexity instead of adding deeply nested branching.
+- Avoid duplicated code. Extract helpers only when they are genuinely reusable and follow the `src/shared` guidance above.
+- Avoid dead code, unused exports, unreachable branches, and unnecessary comments.
+- Prefer explicit error handling and clear control flow over broad catches or silent fallbacks.
+- Keep meaningful unit tests with changed behavior so coverage remains useful.
+- If a change is likely to affect quality gate results, mention the risk and the relevant validation command in the plan or final summary.
+
 ## Verification
 
 Run the narrowest checks that prove the change. For implementation work, prefer:
